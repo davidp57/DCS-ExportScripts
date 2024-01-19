@@ -400,6 +400,21 @@ ExportScript.ConfigEveryFrameArguments =
 	[726] = "%.4f",	--	variateur de lampe d'avertissement
 	[727] = "%.4f",	--	variateur de lampe d'avertissement (panneaux latéraux)
 
+-- Radio U/VHF Lights	
+	[965] = "%.1f",	--	CLR/VLD Display
+	[966] = "%.4f",	--	?
+	[967] = "%.4f",	-- 	?
+	[968] = "%.4f",	--	?
+	[969] = "%.1f",	--	CONF Display
+	[970] = "%.4f",	--	?
+	[971] = "%.4f",	--	?
+	[972] = "%.1f",	--	LED SQL Display
+	[973] = "%.4f",	--	?
+	[974] = "%.4f",	-- 	LED GR Display
+	[975] = "%.4f",	--	?
+	[976] = "%.4f",	--	?
+	[977] = "%.4f",	--	?
+	[978] = "%.4f",	--	?
 }
 
 ExportScript.ConfigArguments =

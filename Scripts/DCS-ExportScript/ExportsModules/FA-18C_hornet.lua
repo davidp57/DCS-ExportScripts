@@ -1,7 +1,7 @@
 -- F/A-18C Export
 
 ExportScript.FoundDCSModule = true
-ExportScript.Version.FA18C_hornet = "1.2.1"
+ExportScript.Version.FA18C_hornet = "1.3.1"
 
 ExportScript.ConfigEveryFrameArguments = 
 {
@@ -184,7 +184,6 @@ ExportScript.ConfigEveryFrameArguments =
 	[149] = "%.4f",	-- heading
 	[150] = "%.4f",	-- pitch
 	[151] = "%.4f",	-- bank
-	
 }
 ExportScript.ConfigArguments = 
 {
@@ -513,9 +512,116 @@ ExportScript.ConfigArguments =
 
 -- Pointed to by ProcessIkarusDCSHighImportance
 function ExportScript.ProcessIkarusDCSConfigHighImportance(mainPanelDevice)
+	--[[
+	every frame export to Ikarus
+	Example from A-10C
+	Get Radio Frequencies
+	get data from device
+	local lUHFRadio = GetDevice(54)
+	ExportScript.Tools.SendData("ExportID", "Format")
+	ExportScript.Tools.SendData(2000, string.format("%7.3f", lUHFRadio:get_frequency()/1000000)) <- special function for get frequency data
+	]]
+
+	-- UFC Displays
+	local lUFCDisplays = ExportScript.Tools.getListIndicatorValue(6)
+	if ExportScript.Config.Debug then
+		ExportScript.Tools.WriteToLog('UFC: '..ExportScript.Tools.dump(lUFCDisplays))
+	end
+	
+	if lUFCDisplays ~= nil and lUFCDisplays.UFC_MainDummy ~= nil then
+		-- ScratchPadString Displays
+		lUFCDisplays.UFC_ScratchPadString1Display = string.gsub(lUFCDisplays.UFC_ScratchPadString1Display, "_", "-") -- fix weil das ein - sein sollte
+		lUFCDisplays.UFC_ScratchPadString2Display = string.gsub(lUFCDisplays.UFC_ScratchPadString2Display, "_", "-") -- fix weil das ein - sein sollte
+		lUFCDisplays.UFC_ScratchPadString1Display = string.gsub(lUFCDisplays.UFC_ScratchPadString1Display, "~", "2") -- fix weil das eine 2 sein sollte
+		lUFCDisplays.UFC_ScratchPadString2Display = string.gsub(lUFCDisplays.UFC_ScratchPadString2Display, "~", "2") -- fix weil das eine 2 sein sollte
+		lUFCDisplays.UFC_ScratchPadString1Display = string.gsub(lUFCDisplays.UFC_ScratchPadString1Display, "`", "1") -- fix weil das eine 1 sein sollte
+		lUFCDisplays.UFC_ScratchPadString2Display = string.gsub(lUFCDisplays.UFC_ScratchPadString2Display, "`", "1") -- fix weil das eine 1 sein sollte
+		ExportScript.Tools.SendData(2020, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_ScratchPadString1Display, 2)) -- ScratchPadString1Display 2 character
+		ExportScript.Tools.SendData(2021, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_ScratchPadString2Display, 2)) -- ScratchPadString2Display 2 character
+		ExportScript.Tools.SendData(2022, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_ScratchPadNumberDisplay, 7)) -- ScratchPadNumberDisplay 7 character
+		-- ExportScript.Tools.SendData(2090, ExportScript.Tools.DisplayFormat( lUFCDisplays.UFC_ScratchPadString1Display .. lUFCDisplays.UFC_ScratchPadString2Display, 4)) -- ScratchPadString2Display 2 character
+		-- ExportScript.Tools.SendData(2091, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_ScratchPadNumberDisplay, 7)) -- ScratchPadNumberDisplay 7 character
+		ExportScript.Tools.SendData(2090, ExportScript.Tools.DisplayFormat( lUFCDisplays.UFC_ScratchPadString1Display .. lUFCDisplays.UFC_ScratchPadString2Display, 4) .. "\n" .. ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_ScratchPadNumberDisplay, 7)) -- ScratchPadString2Display all characters
+
+		local lTmpCueing = " "
+		-- Option Displays
+		lTmpCueing = (#lUFCDisplays.UFC_OptionCueing1 > 0 and "¦" or " ")
+		ExportScript.Tools.SendData(2023, ExportScript.Tools.DisplayFormat(lTmpCueing..lUFCDisplays.UFC_OptionDisplay1)) -- OptionDisplay1 5 character
+		lTmpCueing = (#lUFCDisplays.UFC_OptionCueing2 > 0 and "¦" or " ")
+		ExportScript.Tools.SendData(2024, ExportScript.Tools.DisplayFormat(lTmpCueing..lUFCDisplays.UFC_OptionDisplay2)) -- OptionDisplay2 5 character
+		lTmpCueing = (#lUFCDisplays.UFC_OptionCueing3 > 0 and "¦" or " ")
+		ExportScript.Tools.SendData(2025, ExportScript.Tools.DisplayFormat(lTmpCueing..lUFCDisplays.UFC_OptionDisplay3)) -- OptionDisplay3 5 character
+		lTmpCueing = (#lUFCDisplays.UFC_OptionCueing4 > 0 and "¦" or " ")
+		ExportScript.Tools.SendData(2026, ExportScript.Tools.DisplayFormat(lTmpCueing..lUFCDisplays.UFC_OptionDisplay4)) -- OptionDisplay4 5 character
+		lTmpCueing = (#lUFCDisplays.UFC_OptionCueing5 > 0 and "¦" or " ")
+		ExportScript.Tools.SendData(2027, ExportScript.Tools.DisplayFormat(lTmpCueing..lUFCDisplays.UFC_OptionDisplay5)) -- OptionDisplay5 5 character
+
+		-- Comm Displays
+		lUFCDisplays.UFC_Comm1Display = string.gsub(lUFCDisplays.UFC_Comm1Display, "~", "2") -- fix weil das eine 2 sein sollte
+		lUFCDisplays.UFC_Comm2Display = string.gsub(lUFCDisplays.UFC_Comm2Display, "~", "2") -- fix weil das eine 2 sein sollte
+		lUFCDisplays.UFC_Comm1Display = string.gsub(lUFCDisplays.UFC_Comm1Display, "`", "1") -- fix weil das eine 1 sein sollte
+		lUFCDisplays.UFC_Comm2Display = string.gsub(lUFCDisplays.UFC_Comm2Display, "`", "1") -- fix weil das eine 1 sein sollte
+		ExportScript.Tools.SendData(2028, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_Comm1Display, 2)) -- Comm1Display 2 character
+		ExportScript.Tools.SendData(2029, ExportScript.Tools.DisplayFormat(lUFCDisplays.UFC_Comm2Display, 2)) -- Comm2Display 2 character
+	else
+		-- ScratchPadString Displays
+		ExportScript.Tools.SendData(2020, " ") -- ScratchPadString1Display 2 character
+		ExportScript.Tools.SendData(2021, " ") -- ScratchPadString2Display 2 character
+		ExportScript.Tools.SendData(2022, " ") -- ScratchPadNumberDisplay 7 character
+		ExportScript.Tools.SendData(2090, " ") -- ScratchPadString2Display all characters		
+
+		-- Option Displays
+		ExportScript.Tools.SendData(2023, " ") -- OptionDisplay1 5 character
+		ExportScript.Tools.SendData(2024, " ") -- OptionDisplay2 5 character
+		ExportScript.Tools.SendData(2025, " ") -- OptionDisplay3 5 character
+		ExportScript.Tools.SendData(2026, " ") -- OptionDisplay4 5 character
+		ExportScript.Tools.SendData(2027, " ") -- OptionDisplay5 5 character
+
+		-- Comm Displays
+		ExportScript.Tools.SendData(2028, " ") -- Comm1Display 2 character
+		ExportScript.Tools.SendData(2029, " ") -- Comm2Display 2 character
+	end
+	
+	local lUHF1Radio = GetDevice(38)
+	ExportScript.Tools.SendData(2030, ExportScript.Tools.DisplayFormat(ExportScript.Tools.RoundFreqeuncy((lUHF1Radio:get_frequency()/1000000))), 7)
+	
+	local lUHF2Radio = GetDevice(39)
+	ExportScript.Tools.SendData(2031, ExportScript.Tools.DisplayFormat(ExportScript.Tools.RoundFreqeuncy((lUHF2Radio:get_frequency()/1000000), "7.3", false, 0.005)), 7)
+
+	local lEngineFuelClock = ExportScript.Tools.getListIndicatorValue(5)
+	if lEngineFuelClock ~= nil and lEngineFuelClock.txt_RPM_R ~= nil then
+		-- Engine informations 3 character
+		ExportScript.Tools.SendData(2000, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_RPM_R, 3)) -- right RPM
+		ExportScript.Tools.SendData(2001, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_RPM_L, 3)) -- left RPM
+		ExportScript.Tools.SendData(2004, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FF_R, 3)) -- right Fuel flow
+		ExportScript.Tools.SendData(2005, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FF_L, 3)) -- left Fuel flow
+
+		ExportScript.Tools.SendData(2010, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_BINGO, 6)) -- BINGO 
+	else
+		-- Engine informations 3 character
+		ExportScript.Tools.SendData(2000, " ") -- right RPM
+		ExportScript.Tools.SendData(2001, " ") -- left RPM
+		ExportScript.Tools.SendData(2004, " ") -- right Fuel flow
+		ExportScript.Tools.SendData(2005, " ") -- left Fuel flow
+		
+		-- Fuel informations 6 character
+		ExportScript.Tools.SendData(2010, " ") -- BINGO 
+	end
+
 end
 
 function ExportScript.ProcessDACConfigHighImportance(mainPanelDevice)
+	--[[
+	every frame export to DAC
+	Example from A-10C
+	Get Radio Frequencies
+	get data from device
+	local UHF_RADIO = GetDevice(54)
+	ExportScript.Tools.SendDataDAC("ExportID", "Format")
+	ExportScript.Tools.SendDataDAC("ExportID", "Format", HardwareConfigID)
+	ExportScript.Tools.SendDataDAC("2000", string.format("%7.3f", UHF_RADIO:get_frequency()/1000000))
+	ExportScript.Tools.SendDataDAC("2000", string.format("%7.3f", UHF_RADIO:get_frequency()/1000000), 2) -- export to Hardware '2' Config
+	]]
 end
 
 -----------------------------------------------------
@@ -534,16 +640,10 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
 	ExportScript.Tools.SendData("ExportID", "Format")
 	ExportScript.Tools.SendData(2000, string.format("%7.3f", lUHFRadio:get_frequency()/1000000)) <- special function for get frequency data
 	]]
-	 
-	--this "calls" the function. the actual function is located at the bottom of the file
-	ExportScript.TripleFireFeature(mainPanelDevice)
-	-- Kneeboard Info. Contains Name of carrier, callsign, ATC freq, tacan, ils, and link4
-	ExportScript.KneeboardInfo(mainPanelDevice) -- recommend ~8pt font in DCS-Interface
-
+	
 	--ExportScript.Tools.WriteToLog('list_cockpit_params(): '..ExportScript.Tools.dump(list_cockpit_params()))
 	
 	-- IFEI - Engine, Fuel and Clock informations
-	
 	local lEngineFuelClock = ExportScript.Tools.getListIndicatorValue(5)
 	if ExportScript.Config.Debug then
 		ExportScript.Tools.WriteToLog('EngineFuelClock: '..ExportScript.Tools.dump(lEngineFuelClock))
@@ -551,37 +651,27 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
 
 	if lEngineFuelClock ~= nil and lEngineFuelClock.txt_RPM_R ~= nil then
 		-- Engine informations 3 character
-		ExportScript.Tools.SendData(2000, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_RPM_R, 3)) -- right RPM
-		ExportScript.Tools.SendData(2001, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_RPM_L, 3)) -- left RPM
 		ExportScript.Tools.SendData(2002, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_TEMP_R, 3)) -- right TEMP
 		ExportScript.Tools.SendData(2003, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_TEMP_L, 3)) -- left TEMP
-		ExportScript.Tools.SendData(2004, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FF_R, 3)) -- right Fuel flow
-		ExportScript.Tools.SendData(2005, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FF_L, 3)) -- left Fuel flow
 		ExportScript.Tools.SendData(2006, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_OilPress_R, 3)) -- right OilPress
 		ExportScript.Tools.SendData(2007, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_OilPress_L, 3)) -- left OilPress
 		
 		-- Fuel informations 6 character
 		ExportScript.Tools.SendData(2008, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FUEL_UP, 6)) -- up Fuel
 		ExportScript.Tools.SendData(2009, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_FUEL_DOWN, 6)) -- down Fuel
-		ExportScript.Tools.SendData(2010, ExportScript.Tools.DisplayFormat(lEngineFuelClock.txt_BINGO, 6)) -- BINGO 
 		
 		-- Clock 8 character
 		ExportScript.Tools.SendData(2011, ExportScript.Tools.DisplayFormat(string.format("%s¦%s¦%s", lEngineFuelClock.txt_CLOCK_H, lEngineFuelClock.txt_CLOCK_M, lEngineFuelClock.txt_CLOCK_S), 8)) -- Clock HH:MM:SS
 	else
 		-- Engine informations 3 character
-		ExportScript.Tools.SendData(2000, " ") -- right RPM
-		ExportScript.Tools.SendData(2001, " ") -- left RPM
 		ExportScript.Tools.SendData(2002, " ") -- right TEMP
 		ExportScript.Tools.SendData(2003, " ") -- left TEMP
-		ExportScript.Tools.SendData(2004, " ") -- right Fuel flow
-		ExportScript.Tools.SendData(2005, " ") -- left Fuel flow
 		ExportScript.Tools.SendData(2006, " ") -- right OilPress
 		ExportScript.Tools.SendData(2007, " ") -- left OilPress
 		
 		-- Fuel informations 6 character
 		ExportScript.Tools.SendData(2008, " ") -- up Fuel
 		ExportScript.Tools.SendData(2009, " ") -- down Fuel
-		ExportScript.Tools.SendData(2010, " ") -- BINGO 
 		
 		-- Clock 8 character
 		ExportScript.Tools.SendData(2011, " ") -- Clock HH:MM:SS
@@ -715,98 +805,28 @@ function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
 	local lUHF2Radio = GetDevice(40)
 	ExportScript.Tools.SendDataDAC(2031, ExportScript.Tools.DisplayFormat(ExportScript.Tools.RoundFreqeuncy((lUHF2Radio:get_frequency()/1000000), "7.3", false, 0.005)), 7)
 
+	--=====================================================================================
+	--[[
+	ExportScript.Tools.WriteToLog('list_cockpit_params(): '..ExportScript.Tools.dump(list_cockpit_params()))
+	ExportScript.Tools.WriteToLog('CMSP: '..ExportScript.Tools.dump(list_indication(7)))
+	
+	local ltmp1 = 0
+	for ltmp2 = 0, 13, 1 do
+		ltmp1 = list_indication(ltmp2)
+		ExportScript.Tools.WriteToLog(ltmp2..': '..ExportScript.Tools.dump(ltmp1))
+		--ExportScript.Tools.WriteToLog(ltmp2..' (metatable): '..ExportScript.Tools.dump(getmetatable(ltmp1)))
+	end
+	]]
+--[[
+	local ltmp1 = 0
+	for ltmp2 = 1, 73, 1 do
+		ltmp1 = GetDevice(ltmp2)
+		ExportScript.Tools.WriteToLog(ltmp2..': '..ExportScript.Tools.dump(ltmp1))
+		ExportScript.Tools.WriteToLog(ltmp2..' (metatable): '..ExportScript.Tools.dump(getmetatable(ltmp1)))
+	end
+]]
 end
 
 -----------------------------
 --     Custom functions    --
 -----------------------------
-
-function ExportScript.KneeboardInfo(mainPanelDevice)
-	local kneeboardGet = ExportScript.Tools.getListIndicatorValue(13) -- list_indication(13)
-
-	if kneeboardGet.Carrier_callsign1 == nil then
-		ExportScript.Tools.SendData(3002, 'CV\nDATA')
-	else
-		ExportScript.Tools.SendData(3002, kneeboardGet.Carrier_callsign1
-				.. '\n' .. kneeboardGet.ATC_Frequency1
-				.. '\n' .. 'TCN' .. kneeboardGet.TACAN_Channel1
-				.. '\n' .. 'ILS ' .. kneeboardGet.ILS_Channel1
-				.. '\n' .. 'L4 ' .. kneeboardGet.Link4_Frequency1)
-	end
-end
-
-
-function ExportScript.TripleFireFeature(mainPanelDevice)
-	--This function will get the status of the three fire lights. 
-	--When a light is lit, its text will be exported
-	
-	--we will make the variable 'light_leftEngFireValue'
-	--it will contain the value of the light animation for the left engine fire light
-	local light_leftEngFireValue = mainPanelDevice:get_argument_value(10)
-
-	--'light_rightEngFireValue' will contain the value of the light animation for the right engine fire light
-	local light_rightEngFireValue = mainPanelDevice:get_argument_value(26)
-	
-	--'light_apuFireValue' will contain the value of the light animation for the apu fire light
-	local light_apuFireValue = mainPanelDevice:get_argument_value(29)
-	
-	--now that we have all of the values, we have to create some logic to see if any of them are on
-	
-	--a variable that begins with "is" can be considered a boolean,
-	--which means we will make it true or false, represented by 1 or 0, respectively
-	
-	local isLeftEngFireLit
-	local isRightEngFireLit
-	local isApuFireLit
-	
-	--using the modelViewer, you can see that the light comes on for values above 0.51-ish
-	--we will take that value and determine the true/false of its related boolean (bool)
-	if light_leftEngFireValue > 0.51 then
-		isLeftEngFireLit = 1
-	else
-		isLeftEngFireLit = 0
-	end
-	
-	--we will do the same for the right engine and apu
-	if light_leftEngFireValue > 0.51 then
-		isRightEngFireLit = 1
-	else
-		isRightEngFireLit = 0
-	end
-	
-	if light_apuFireValue > 0.51 then
-		isApuFireLit = 1
-	else
-		isApuFireLit = 0
-	end
-	
-	--now that we have the status of all of the lights, we will use them in another logic
-	local isFireHappening
-	--if any of these values are true, there is a fire
-	if (isLeftEngFireLit == 1) or (isRightEngFireLit == 1) or (isApuFireLit == 1) then
-		isFireHappening = 1
-	else
-		isFireHappening = 0
-	end
-	
-	--now we export the results in a unique export ID
-	ExportScript.Tools.SendData(3000, isFireHappening)
-	
-	--But, remember how we also wanted the text too?
-	--We will do that like this
-	--if a light is lit, then we populate the variable with a string
-	--we will call that variable 'whatIsOnFire'
-	local whatIsOnFire
-	if isLeftEngFireLit == 1 then
-		whatIsOnFire = "L ENG"
-	elseif isRightEngFireLit == 1 then
-		whatIsOnFire = "R ENG"
-	elseif isApuFireLit == 1 then
-		whatIsOnFire = "APU"
-	else
-		whatIsOnFire = ""  --it will be blank if nothing is on fire
-	end
-	
-	--use 3001 as a 'Title Text Change' in the streamdeck
-	ExportScript.Tools.SendData(3001, whatIsOnFire)
-end
