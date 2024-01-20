@@ -874,7 +874,7 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)	-- Po
 		else
 			PILOT_UFC(ExportScript.Tools.getListIndicatorValue(9))
 		end
-		WSO_UFC(ExportScript.Tools.getListIndicatorValue(18))
+		WSO_UFC(ExportScript.Tools.getListIndicatorValue(21))
 	-- COMBINED FUEL DISPLAY
 		ExportScript.Tools.SendData(83830,FUEL_display(mainPanelDevice,0))	-- NOTE EXPORT ID HAS CHANGED
 	-- INDIVIDUAL FUEL DATA
