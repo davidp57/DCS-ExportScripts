@@ -632,7 +632,7 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
   ExportScript.UhfRadioPresets(mainPanelDevice) -- AN/ARC-164 UHF Preset List
   ExportScript.CrewStatusRepeater(mainPanelDevice) -- Crew Status Window
   ExportScript.RadioFreqs(mainPanelDevice) -- Radio Stack
-  
+  --[[
   if LoIsObjectExportAllowed() then -- returns true if world objects data is available
     if LoIsOwnshipExportAllowed() then -- returns true if ownship data is available
   ExportScript.LoAircraftInfo(mainPanelDevice) -- Provides a lot of aircraft properties
@@ -643,6 +643,7 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
   ExportScript.IglaHunter(mainPanelDevice) -- Locates closest Igla (Use in Single Player)
     end
   end  
+]]
 end
 
 function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)

@@ -7,7 +7,7 @@ local Terrain = require('terrain') -- map info
 ExportScript.FoundDCSModule = true
 ExportScript.Version.F5E3 = "1.2.1"
 
-ExportScript.ConfigEveryFrameArguments = 
+ExportScript.ConfigEveryFrameArguments =
 {
 	--[[
 	every frames arguments
@@ -96,7 +96,7 @@ ExportScript.ConfigEveryFrameArguments =
 	-- Standby Attitude Indicator
 	[438] = "%.4f",	-- SAI_Pitch {-0.665, -0.581, -0.5, 0.0, 0.5, 0.581, 0.676, 0.735} {-rad_(78.0), -rad_(60.0), -rad_(42.0), 0.0, rad_(42.0), rad_(60.0), rad_(80.0), rad_(92.0)}
 	[439] = "%.4f",	-- SAI_Bank {1.0, -1.0} {-math.pi, math.pi}
-	[440] = "%.4f",	-- SAI_OFF_flag 
+	[440] = "%.4f",	-- SAI_OFF_flag
 	--[443] = "%.4f",	-- SAI_knob_arrow {-1.0, 1.0} {0.0, 1.0}
 	-- Clock
 	[19] = "%.4f",	-- CLOCK_currtime_hours
@@ -231,7 +231,7 @@ ExportScript.ConfigEveryFrameArguments =
 	[818] = "%.f",	-- brtIFFLights
 	[819] = "%.f"	-- brtRadarLights
 }
-ExportScript.ConfigArguments = 
+ExportScript.ConfigArguments =
 {
 	--[[
 	arguments for export in low tick interval
@@ -525,8 +525,11 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
   ExportScript.UhfRadioPresets(mainPanelDevice) -- AN/ARC-164 UHF Preset List
   ExportScript.TacanRadio(mainPanelDevice) -- TACAN Channel
   ExportScript.FuelQuantityIndicator(mainPanelDevice) -- Fuel Quantity Indicator (Dual)
-  ExportScript.UhfRadioKnobs(mainPanelDevice) -- AN/ARC-164 UHF 
-  
+  ExportScript.UhfRadioKnobs(mainPanelDevice) -- AN/ARC-164 UHF
+  ExportScript.RWRControlPanel(mainPanelDevice)
+  ExportScript.flapPositionIndicator(mainPanelDevice)
+  ExportScript.pitchTrimPosition(mainPanelDevice)
+
   if LoIsObjectExportAllowed() then -- returns true if world objects data is available
     if LoIsOwnshipExportAllowed() then -- returns true if ownship data is available
   ExportScript.LoAircraftInfo(mainPanelDevice) -- Provides a lot of aircraft properties
@@ -541,8 +544,8 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
 end
 
 function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
-	
-	--AN/ARC-164 UHF 
+
+	--AN/ARC-164 UHF
 	---------------------------------------------------
 	local lUHFRadio = GetDevice(23)
 	if lUHFRadio:is_on() then
@@ -552,7 +555,7 @@ function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
 		local lUHFRadio_PRESET = {[0]="01",[0.05]="02",[0.1]="03",[0.15]="04",[0.2]="05",[0.25]="06",[0.3]="07",[0.35]="08",[0.4]="09",[0.45]="10",[0.5]="11",[0.55]="12",[0.6]="13",[0.65]="14",[0.7]="15",[0.75]="16",[0.80]="17",[0.85]="18",[0.90]="19",[0.95]="20"}
 		ExportScript.Tools.SendDataDAC(2001, lUHFRadio_PRESET[ExportScript.Tools.round(mainPanelDevice:get_argument_value(300), 2)])
 	end
-	
+
 	-- TACAN Channel
 	-------------------------------------------------
 	ExportScript.Tools.SendDataDAC(2002, (string.format("%0.2f", (mainPanelDevice:get_argument_value(263))) == "1.00" and "0" or "1")..ExportScript.Tools.round(mainPanelDevice:get_argument_value(264) * 10, 0)..ExportScript.Tools.round(mainPanelDevice:get_argument_value(265) * 10, 0)..(string.format("%1d", (mainPanelDevice:get_argument_value(266))) == "0" and "X" or "Y"))
@@ -560,11 +563,11 @@ function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
 	-- Fuel Quantity Indicator (Dual)
 	local lLeftFuel = ExportScript.Tools.round(mainPanelDevice:get_argument_value(22) * 2500, 0)
 	local lRightFuel = ExportScript.Tools.round(mainPanelDevice:get_argument_value(23) * 2500, 0)
-	
+
 	ExportScript.Tools.SendDataDAC(2003, lLeftFuel)
 	ExportScript.Tools.SendDataDAC(2004, lRightFuel)
 	ExportScript.Tools.SendDataDAC(2005, lLeftFuel + lRightFuel)
-	
+
 	-- generic Radio display and frequency rotarys
 	-------------------------------------------------
 	-- genericRadioConf
@@ -603,13 +606,13 @@ function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
 	ExportScript.genericRadioConf[1]['ManualPreset']['ButtonID'] = 3007  -- ManualPreset button id from cklickable.lua
 	ExportScript.genericRadioConf[1]['ManualPreset']['ValueManual'] = 0.0-- ManualPreset Manual value from cklickable.lua
 	ExportScript.genericRadioConf[1]['ManualPreset']['ValuePreset'] = 0.1-- ManualPreset Preset value from cklickable.lua
-	
-	
+
+
 	--=====================================================================================
 	--[[
 	ExportScript.Tools.WriteToLog('list_cockpit_params(): '..ExportScript.Tools.dump(list_cockpit_params()))
 	ExportScript.Tools.WriteToLog('CMSP: '..ExportScript.Tools.dump(list_indication(7)))
-	
+
 	-- list_indication get tehe value of cockpit displays
 	local ltmp1 = 0
 	for ltmp2 = 0, 20, 1 do
@@ -633,11 +636,11 @@ end
 ----------------------
 
 function ExportScript.LoAircraftInfo(mainPanelDevice)
-  
+
   -- General
   local aircraftName = LoGetSelfData().Name -- DCS Name of the aircraft eg "F-5E-3"
   local pilotName = LoGetPilotName() -- Logbook Pilot name
-  
+
 	-- Times DCS times are default in seconds
   local dcsModelTime = LoGetModelTime() -- time since aircraft spawn
   local missionStartTime = LoGetMissionStartTime() -- second after midnight that the mission started
@@ -647,16 +650,16 @@ function ExportScript.LoAircraftInfo(mainPanelDevice)
   local realTimeLocal = os.date("%H-%M-%S") -- real life time
   local realTimeUtc = os.date("!%H-%M-%S") -- real life zulu time
   --local playTime = formatTime(DCS.getRealTime()) -- does not work, export environment no access
-  
+
   -- Player Aircraft Properties
   local altMsl_meters = LoGetAltitudeAboveSeaLevel()
   local altMsl_feet = meters2feet(altMsl_meters)
   local altAgl_meters = LoGetAltitudeAboveGroundLevel()
   local altAgl_feet = meters2feet(altAgl_meters)
-  
+
   local verticalVelocity_metric = LoGetVerticalVelocity()
   local verticalVelocity_imperial = metersPerSecond2feetPerMinute(LoGetVerticalVelocity())
-  
+
   local ias_metric = LoGetIndicatedAirSpeed()
   local ias_knots = metersPerSecond2knots(LoGetIndicatedAirSpeed())
   local ias_mph = metersPerSecond2milesPerHour(LoGetIndicatedAirSpeed())
@@ -664,13 +667,13 @@ function ExportScript.LoAircraftInfo(mainPanelDevice)
   local tas_metric = LoGetTrueAirSpeed()
   local tas_knots = metersPerSecond2knots(LoGetTrueAirSpeed())
   local tas_mph = metersPerSecond2milesPerHour(LoGetTrueAirSpeed())
-  
+
   local speed_mach = LoGetMachNumber()
   local accel_g = LoGetAccelerationUnits().y
   local aoa = LoGetAngleOfAttack()
-  
+
    --local atmosphericPressure_mmhg = LoGetBasicAtmospherePressure() -- does not seem to work
-  
+
   local aircraftPitch, aircraftBank, aircraftYawTrue = LoGetADIPitchBankYaw()
   aircraftPitch = aircraftPitch * 57.3
   aircraftBank = aircraftBank * 57.3
@@ -679,15 +682,15 @@ function ExportScript.LoAircraftInfo(mainPanelDevice)
   local aircraftHeading = aircraftYawMagnetic -- this cound be negative
   if aircraftHeading < 0 then aircraftHeading = aircraftHeading + 360 end -- removes the negative
   local magneticVariance = aircraftYawTrue - aircraftYawMagnetic -- works for all maps
-  
+
   local selfData = LoGetSelfData() -- relative the the player
   local lLatitude					= selfData.LatLongAlt.Lat
   local lLongitude				= selfData.LatLongAlt.Long
   local mgrs = Terrain.GetMGRScoordinates(LoGetSelfData().Position.x, LoGetSelfData().Position.z)
   local mgrsTable = mgrsTableize(mgrs) -- format is mgrsTable[1][1], mgrsTable[1][2], mgrsTable[1][3], mgrsTable[1][4]
- 
+
   local aircraftHeadingTrue = selfData.Heading * 57.3 -- true yeading (same as trueYaw for fixed wing aircraft)
-  
+
   -- Engine Info
   local engineInfo = LoGetEngineInfo()
   local lEngineRPMleft			= engineInfo.RPM.left -- ENG1 RPM %
@@ -696,26 +699,26 @@ function ExportScript.LoAircraftInfo(mainPanelDevice)
   local lEngineFuelExternal		= engineInfo.fuel_external -- TANK2 (EXT) (KG) -- does not seem to work for FF modules
   local lEngineFuelTotal = lEngineFuelInternal + lEngineFuelExternal
   local lEngineTempLeft			= engineInfo.Temperature.left -- ENG1 EGT ºC. May get odd numbers
-  local lEngineTempRight			= engineInfo.Temperature.right -- ENG2 EGT ºC. May get odd numbers	
-  
+  local lEngineTempRight			= engineInfo.Temperature.right -- ENG2 EGT ºC. May get odd numbers
+
   local lFuelConsumptionLeft   =  engineInfo.FuelConsumption.left -- {left ,right},kg per sec
   local lFuelConsumptionRight   =  engineInfo.FuelConsumption.right -- {left ,right},kg per sec
   local lFuelConsumptionTotal   =  lFuelConsumptionLeft + lFuelConsumptionRight -- total,kg per sec
   local lHydraulicPressureLeft   =  engineInfo.HydraulicPressure.left -- {left ,right},kg per square centimeter
   local lHydraulicPressureRight   =  engineInfo.HydraulicPressure.right -- {left ,right},kg per square centimeter
- 
+
   ExportScript.Tools.SendData(8000, aircraftName)
-  
+
   ExportScript.Tools.SendData(8001, pilotName)
-  
+
   ExportScript.Tools.SendData(8002, 'Real Time\n'.. realTimeLocal .. '\nDCS Time\n' .. dcsTimeLocal) -- clocks
-  
+
   ExportScript.Tools.SendData(8003, 'HDG ' .. prefixZerosFixedLength(round(aircraftHeading,0),3)  .. 'º'
                                     .. '\nALT ' .. format_int(round(altMsl_feet,-1)) .. ' ft'
                                     .. '\nIAS ' .. round(ias_knots,0)  .. ' kts'
                                     .. '\nV/S ' .. format_int(round(verticalVelocity_imperial,-2)) .. ' ft/min'
                                   ) -- Aircraft Instrument panel (western)
-                                  
+
   ExportScript.Tools.SendData(8004, 'HDG ' .. prefixZerosFixedLength(round(aircraftHeading,0),3)  .. 'º'
                                     .. '\nALT ' .. format_int(round(altMsl_meters,-1)) .. ' m'
                                     .. '\nIAS ' .. round(ias_metric,0)  .. ' km/h'
@@ -727,27 +730,27 @@ function ExportScript.LoAircraftInfo(mainPanelDevice)
                                     .. '\nIAS ' .. round(ias_mph,0)  .. ' mph'
                                     .. '\nV/S ' .. format_int(round(verticalVelocity_imperial,-2)) .. ' ft/min'
                                   ) -- Aircraft Instrument panel (western ww2)
-                                  
-  ExportScript.Tools.SendData(8006, "Lat-Long-DMS\n" .. formatCoord("DMS",true, lLatitude) 
+
+  ExportScript.Tools.SendData(8006, "Lat-Long-DMS\n" .. formatCoord("DMS",true, lLatitude)
                                     .. "\n" .. formatCoord("DMS",false, lLongitude)
                                   ) -- Player coordinates in DMS
 
-  ExportScript.Tools.SendData(8007, "Lat-Long-DDM\n" .. formatCoord("DDM",true, lLatitude) 
+  ExportScript.Tools.SendData(8007, "Lat-Long-DDM\n" .. formatCoord("DDM",true, lLatitude)
                                     .. "\n" .. formatCoord("DDM",false, lLongitude)
                                   ) -- Player coordinates in DDM
 
-  ExportScript.Tools.SendData(8008, 'MGRS\n'.. mgrsTable[1][1] .. ' ' .. mgrsTable[1][2] 
+  ExportScript.Tools.SendData(8008, 'MGRS\n'.. mgrsTable[1][1] .. ' ' .. mgrsTable[1][2]
                                     .. '\n' .. mgrsTable[1][3] .. ' ' .. mgrsTable[1][4]
                                   ) -- Player coordinates in MGRS on 2 rows + title
 
   ExportScript.Tools.SendData(8009, 'Mag Var\n' .. format_int(round(magneticVariance, 2))) -- also called magnetic deviation
-  
+
   -- Example for using the Lo Data. Feel free to make your own!
   ExportScript.Tools.SendData(8010, format_int(round(kgPerSecond2poundPerHour(lFuelConsumptionLeft), -1))) -- fuel use in pph
-  
+
 end
 function ExportScript.AirportInfo(mainPanelDevice)
-  
+
   local airdromes = LoGetWorldObjects("airdromes") -- returns a list of runways and their popperties
   local airportInfo = {} -- contains generated table of important properties
   -- the table will be sorted by nearest airport first
@@ -756,30 +759,30 @@ function ExportScript.AirportInfo(mainPanelDevice)
   -- airportInfo[1][1] is the airport name of the first element/airport
   -- airportInfo[1][2] is the distance to the airport of the first element/airport
   -- airportInfo[1][3] is the bearing to the airport of the first element/airport
-  -- airportInfo[1][4] is the extimated time en route 
+  -- airportInfo[1][4] is the extimated time en route
   -- airportInfo[1][5] is the direction of the wind
   -- airportInfo[1][6] is the windStrength of the wind
   -- airportInfo[1][7] is the main runway heading
   -- airportInfo[1][8] is the reverse of the main runway
   -- airportInfo[1][9] is the prefered runway based on winds
-  
+
   for key,value in pairs(airdromes) do
-    
+
     -- remove the woRunWay entries so that only named runways are in the list
-    if value.Name ~= 'woRunWay' then 
-      
+    if value.Name ~= 'woRunWay' then
+
       -- get the distance from the player to the runway
-      local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+      local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                                  
-      -- get the direction from the player to the runway                       
-      local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+      -- get the direction from the player to the runway
+      local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
-                                  
+
       -- estimate the runway heading based on the reported values
       local runwayHeading = round(value.Heading * 57.3,-1) / 10
       if runwayHeading < 0 then
@@ -792,30 +795,30 @@ function ExportScript.AirportInfo(mainPanelDevice)
       else
         runwayHeadingReciprocal = runwayHeading+18
       end
-      
+
       local ete = distance / metersPerSecond2knots(LoGetTrueAirSpeed()) * (60 * 60) --based on tas bc dcs is flat...
       -- if ete is more than 24hrs, make it 24 hrs, which shows up as 00-00-00
       -- this case is for choppers and aircraft that arent moving
       if ete > 86400 then ete = 86400 end
       ete = formatTime(ete)
-      
+
       -- wind at airport calculations. Each airport has slighty different winds
       -- https://forum.dcs.world/topic/165136-logetwindatpoint-in-exportlua/#comment-3294428
       -- LoGetWindAtPoint(x,y,z,is_radio_alt), 2 meters off the ground for the "wind sensor"
-      local vx,_vy,vz,_absolute_height = LoGetWindAtPoint(value.Position.x,2,value.Position.y,true) 
+      local vx,_vy,vz,_absolute_height = LoGetWindAtPoint(value.Position.x,2,value.Position.y,true)
       local windDirectionInRadians = math.atan2(vz,vx)
       local windDirection = windDirectionInRadians * 57.3
       local windStrength = math.sqrt((vx)^2 + (vz)^2)
       if windDirection < 0 then
         windDirection = 360 + windDirection
       end
-      -- Convert to direction to from direction 
+      -- Convert to direction to from direction
       if windDirection > 180 then
         windDirection = windDirection - 180
       else
         windDirection = windDirection + 180
       end
-      
+
       -- Calculate the prefered runway for landing
       -- if the rounded runway is within +- 9 of the rounded wind, then it is prefered
       local windRounded = round(windDirection, -1)
@@ -824,17 +827,17 @@ function ExportScript.AirportInfo(mainPanelDevice)
       else
         runwayHeadingPrefered = runwayHeadingReciprocal
       end
-      
+
       -- Populate the table with the important info for each airport
       table.insert(airportInfo, -- the table name
         {value.Name, -- airport name [1]
         distance, bearing, ete, --[2][3][4]
         windDirection,windStrength, --wind direction [5], wind Strength [6]
         runwayHeading, runwayHeadingReciprocal,runwayHeadingPrefered}) -- [7][8][9]
-    
+
     end -- end of woRunWay
   end -- end of FOR loop
-  
+
   -- sort the table based on the second value, which is distance
   -- https://stackoverflow.com/questions/51276613/how-to-sort-table-by-value-and-then-print-index-in-order
   -- https://www.tutorialspoint.com/sort-function-in-lua-programming
@@ -865,7 +868,7 @@ function ExportScript.AirportInfo(mainPanelDevice)
  -- TODO: Does not work because of "DCS."
   -- get the freqs of the airports
   local frequencyList = {}
-  local finalList = 
+  local finalList =
   {
     ["Rio Gallegos"] = {
         [1] = 38.5,
@@ -928,11 +931,11 @@ function ExportScript.AirportInfo(mainPanelDevice)
   ]]
   local firstFreq = finalList[airportInfo[2][1]][1]
   ExportScript.Tools.SendData(9999, firstFreq)
-  
+
 end
 
 function ExportScript.WindsAloft(mainPanelDevice)
-  
+
   -- Winds relative to the aircraft, aka, winds aloft
   local windAloft = LoGetVectorWindVelocity()
   local windStrengthAloft  = math.sqrt((windAloft.x)^2 + (windAloft.z)^2)
@@ -940,8 +943,8 @@ function ExportScript.WindsAloft(mainPanelDevice)
   if windDirectionAloft < 0 then
     windDirectionAloft = 360 + windDirectionAloft
   end
-  
-  -- Convert to direction to from direction 
+
+  -- Convert to direction to from direction
   if windDirectionAloft > 180 then
     windDirectionAloft = windDirectionAloft - 180
   else
@@ -954,7 +957,7 @@ function ExportScript.WindsAloft(mainPanelDevice)
 end
 
 function ExportScript.GroundRadar(mainPanelDevice) -- may return some odd things
-  
+
   local tableOfUnits = LoGetWorldObjects('units')
 
   local tableOfGround = {}
@@ -963,16 +966,16 @@ function ExportScript.GroundRadar(mainPanelDevice) -- may return some odd things
   local tableOfGround_friendlyReports = {}
   local tableOfGround_enemy = {}
    local tableOfGround_enemyReports = {}
-  
+
   for key,value in pairs(tableOfUnits) do
     if value.Type.level1 == 2 then
     	table.insert(tableOfGround, value)
     end
-  end   
-  
+  end
+
   local selfData = LoGetSelfData()
   local selfCoalitionID = selfData.CoalitionID
-  
+
   for key,value in pairs(tableOfGround) do
     if value.CoalitionID == selfCoalitionID then
     	table.insert(tableOfGround_friendly, value)
@@ -980,78 +983,78 @@ function ExportScript.GroundRadar(mainPanelDevice) -- may return some odd things
       table.insert(tableOfGround_enemy, value)
     end
   end
-  
+
   -- TODO: only do enemy reports if there is an awacs unit(?)
   for key,value in pairs(tableOfGround_enemy) do
-    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                             
-    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
 
     table.insert(tableOfGround_enemyReports, -- the table name
-        {value.Name, distance, bearing}) --[1][2][3]    
-  end  
+        {value.Name, distance, bearing}) --[1][2][3]
+  end
   table.sort(tableOfGround_enemyReports, function(a,b) return a[2] < b[2] end) -- sort based on the second value, which is distance
-  
-  
+
+
   for key,value in pairs(tableOfGround_friendly) do
-    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                             
-    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
 
     table.insert(tableOfGround_friendlyReports, -- the table name
         {value.Name, distance, bearing}) --[1][2][3]
-        
+
   end
   table.sort(tableOfGround_friendlyReports, function(a,b) return a[2] < b[2] end) -- sort based on the second value, which is distance
-  
+
   local string_8200 = 'No Ground\nEnemy\nDetected'
   if tableOfGround_enemyReports[1] ~= nill then
     string_8200 = 'Enemy Ground\n' .. tableOfGround_enemyReports[1][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfGround_enemyReports[1][3],3) -- bearing
                 .. 'º  ' .. round(tableOfGround_enemyReports[1][2],0) .. 'nm'--distance
   end
-  
+
   local string_8201 = 'No Ground\nEnemy\nDetected'
   if tableOfGround_enemyReports[2] ~= nill then
     string_8201 = 'Enemy Ground\n'.. tableOfGround_enemyReports[2][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfGround_enemyReports[2][3],3) -- bearing
                 .. 'º  ' .. round(tableOfGround_enemyReports[2][2],0) .. 'nm'--distance
   end
-  
+
   local string_8202 = 'No Ground\nFriend\nDetected'
   if tableOfGround_friendlyReports[1] ~= nill then
     string_8202 = 'Friend Ground\n' .. tableOfGround_friendlyReports[1][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfGround_friendlyReports[1][3],3) -- bearing
                 .. 'º  ' .. round(tableOfGround_friendlyReports[1][2],0) .. 'nm'--distance
   end
-  
+
   local string_8203 = 'No Ground\nFriend\nDetected'
   if tableOfGround_friendlyReports[2] ~= nill then
     string_8203 = 'Friend Ground\n' .. tableOfGround_friendlyReports[2][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfGround_friendlyReports[2][3],3) -- bearing
                 .. 'º  ' .. round(tableOfGround_friendlyReports[2][2],0) .. 'nm'--distance
   end
-  
-  ExportScript.Tools.SendData(8200, string_8200)  
-  ExportScript.Tools.SendData(8201, string_8201)                                 
-  ExportScript.Tools.SendData(8202, string_8202)  
-  ExportScript.Tools.SendData(8203, string_8203)                                  
+
+  ExportScript.Tools.SendData(8200, string_8200)
+  ExportScript.Tools.SendData(8201, string_8201)
+  ExportScript.Tools.SendData(8202, string_8202)
+  ExportScript.Tools.SendData(8203, string_8203)
 end
 
 function ExportScript.AirRadar(mainPanelDevice)
-  
+
   local tableOfUnits = LoGetWorldObjects('units')
 
   local tableOfAircraft = {}
@@ -1060,16 +1063,16 @@ function ExportScript.AirRadar(mainPanelDevice)
   local tableOfAircraft_friendlyReports = {}
   local tableOfAircraft_enemy = {}
    local tableOfAircraft_enemyReports = {}
-  
+
   for key,value in pairs(tableOfUnits) do
     if value.Type.level1 == 1 then
     	table.insert(tableOfAircraft, value)
     end
-  end   
-  
+  end
+
   local selfData = LoGetSelfData()
   local selfCoalitionID = selfData.CoalitionID
-  
+
   for key,value in pairs(tableOfAircraft) do
     if value.CoalitionID == selfCoalitionID then
     	table.insert(tableOfAircraft_friendly, value)
@@ -1077,89 +1080,89 @@ function ExportScript.AirRadar(mainPanelDevice)
       table.insert(tableOfAircraft_enemy, value)
     end
   end
-  
+
   -- TODO: only do enemy reports if there is a awacs unit
   for key,value in pairs(tableOfAircraft_enemy) do
-    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                             
-    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
 
     table.insert(tableOfAircraft_enemyReports, -- the table name
         {value.Name, distance, bearing}) --[1][2][3]
-        
+
     -- https://stackoverflow.com/questions/51276613/how-to-sort-table-by-value-and-then-print-index-in-order
     -- https://www.tutorialspoint.com/sort-function-in-lua-programming
-    
-  end  
+
+  end
   table.sort(tableOfAircraft_enemyReports, function(a,b) return a[2] < b[2] end) -- sort based on the second value, which is distance
-  
-  
+
+
   for key,value in pairs(tableOfAircraft_friendly) do -- [1] will always be the player
-    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                             
-    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
 
     table.insert(tableOfAircraft_friendlyReports, -- the table name
         {value.Name, distance, bearing}) --[1][2][3]
-        
+
   end
   table.sort(tableOfAircraft_friendlyReports, function(a,b) return a[2] < b[2] end) -- sort based on the second value, which is distance
-  
+
   local string_8210 = 'No Air\nEnemy\nDetected'
   if tableOfAircraft_enemyReports[1] ~= nill then
     string_8210 = 'Enemy Air\n' .. tableOfAircraft_enemyReports[1][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfAircraft_enemyReports[1][3],3) -- bearing
                 .. 'º  ' .. round(tableOfAircraft_enemyReports[1][2],0) .. 'nm'--distance
   end
-  
+
   local string_8211 = 'No Air\nEnemy\nDetected'
   if tableOfAircraft_enemyReports[2] ~= nill then
     string_8211 = 'Enemy Air\n' .. tableOfAircraft_enemyReports[2][1]
                 .. '\n ' .. prefixZerosFixedLength(tableOfAircraft_enemyReports[2][3],3) -- bearing
                 .. 'º  ' .. round(tableOfAircraft_enemyReports[2][2],0) .. 'nm'--distance
   end
-  
+
   local string_8212 = 'No Air\nFriend\nDetected'
   if tableOfAircraft_friendlyReports[2] ~= nill then
     string_8212 = 'Friend Air\n' .. tableOfAircraft_friendlyReports[2][1]
                   .. '\n ' .. prefixZerosFixedLength(tableOfAircraft_friendlyReports[2][3],3) -- bearing
                   .. 'º  ' .. round(tableOfAircraft_friendlyReports[2][2],0) .. 'nm'--distance
   end
-  
+
   local string_8213 = 'No Air\nFriend\nDetected'
   if tableOfAircraft_friendlyReports[3] ~= nill then
     string_8213 = 'Friend Air\n' .. tableOfAircraft_friendlyReports[3][1]
                   .. '\n ' .. prefixZerosFixedLength(tableOfAircraft_friendlyReports[3][3],3) -- bearing
                   .. 'º  ' .. round(tableOfAircraft_friendlyReports[3][2],0) .. 'nm'--distance
   end
-  
-  ExportScript.Tools.SendData(8210,string_8210)  
-  ExportScript.Tools.SendData(8211, string_8211)                                 
-  ExportScript.Tools.SendData(8212, string_8212)  
-  ExportScript.Tools.SendData(8213, string_8213)                                  
+
+  ExportScript.Tools.SendData(8210,string_8210)
+  ExportScript.Tools.SendData(8211, string_8211)
+  ExportScript.Tools.SendData(8212, string_8212)
+  ExportScript.Tools.SendData(8213, string_8213)
 end
 
 function ExportScript.IglaHunter(mainPanelDevice) -- Locates the nearest Igla
-  
+
   local tableOfUnits = LoGetWorldObjects('units')
   local selfData = LoGetSelfData()
   local selfCoalitionID = selfData.CoalitionID
-  
+
   local tableOfIgla = {}
   local tableOfIgla_report = {}
-  
+
   --TODO: Might have to refine this.
   for key,value in pairs(tableOfUnits) do
     if value.CoalitionID ~= selfCoalitionID then
@@ -1169,45 +1172,45 @@ function ExportScript.IglaHunter(mainPanelDevice) -- Locates the nearest Igla
             if value.Type.level4 == 55 or 54 or 53 or 52 or 62 then
               table.insert(tableOfIgla, value)
             end
-          end  
-        end    
+          end
+        end
       end
     end
   end
-  
+
   --if tableOfIgla ~= null then
   for key,value in pairs(tableOfIgla) do
-    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+    local distance = getdistance(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, "nm")
-                             
-    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat, 
-                                    value.LatLongAlt.Lat, 
-                                    LoGetSelfData().LatLongAlt.Long, 
+
+    local bearing = getBearing(LoGetSelfData().LatLongAlt.Lat,
+                                    value.LatLongAlt.Lat,
+                                    LoGetSelfData().LatLongAlt.Long,
                                     value.LatLongAlt.Long, true)
 
     table.insert(tableOfIgla_report, -- the table name
-        {value.Name, distance, bearing}) --[1][2][3]    
-  --end  
+        {value.Name, distance, bearing}) --[1][2][3]
+  --end
   end
   table.sort(tableOfIgla_report, function(a,b) return a[2] < b[2] end) -- sort based on the second value, which is distance
-  
+
   local string_8666 = 'Igla Hunter\nSearching...'
   if tableOfIgla_report[1] ~= nill then
     string_8666 = 'Igla Detected\n' .. tableOfIgla_report[1][1]
                                         .. '\n ' .. prefixZerosFixedLength(tableOfIgla_report[1][3],3) -- bearing
                                         .. 'º  ' .. round(tableOfIgla_report[1][2],0) .. ' nm'--distance
   end
-  
-  ExportScript.Tools.SendData(8666, string_8666) 
-  
+
+  ExportScript.Tools.SendData(8666, string_8666)
+
 end
 
 function ExportScript.UhfRadioPresets(mainPanelDevice)
-  
+
   local UhfPresetReadout = ExportScript.Tools.getListIndicatorValue(4) -- uhf radio presets
-  
+
   local UhfCh1 = UhfPresetReadout.SheetTable_Channel1
   local UhfCh2 = UhfPresetReadout.SheetTable_Channel2
   local UhfCh3 = UhfPresetReadout.SheetTable_Channel3
@@ -1228,7 +1231,7 @@ function ExportScript.UhfRadioPresets(mainPanelDevice)
   local UhfCh18 = UhfPresetReadout.SheetTable_Channel18
   local UhfCh19 = UhfPresetReadout.SheetTable_Channel19
   local UhfCh20 = UhfPresetReadout.SheetTable_Channel20
-  
+
 
   ExportScript.Tools.SendData(3016, "UHF 1-4"
                               .. "\n" .. UhfCh1
@@ -1236,35 +1239,35 @@ function ExportScript.UhfRadioPresets(mainPanelDevice)
                               .. "\n" .. UhfCh3
                               .. "\n" .. UhfCh4
                             )
-                           
-   ExportScript.Tools.SendData(3017, "UHF 5-8" 
+
+   ExportScript.Tools.SendData(3017, "UHF 5-8"
                               .. "\n" .. UhfCh5
                               .. "\n" .. UhfCh6
                               .. "\n" .. UhfCh7
                               .. "\n" .. UhfCh8
-                            )                         
-                            
-                          
+                            )
+
+
   ExportScript.Tools.SendData(3018, "UHF 9-12"
                               .. "\n" .. UhfCh9
                               .. "\n" .. UhfCh10
                               .. "\n" .. UhfCh11
                               .. "\n" .. UhfCh12
-                            )                          
-                    
-  ExportScript.Tools.SendData(3019, "UHF 13-16" 
+                            )
+
+  ExportScript.Tools.SendData(3019, "UHF 13-16"
                               .. "\n" .. UhfCh13
                               .. "\n" .. UhfCh14
                               .. "\n" .. UhfCh15
                               .. "\n" .. UhfCh16
-                            )       
-                            
-  ExportScript.Tools.SendData(3020, "UHF 16-20" 
+                            )
+
+  ExportScript.Tools.SendData(3020, "UHF 16-20"
                               .. "\n" .. UhfCh17
                               .. "\n" .. UhfCh18
                               .. "\n" .. UhfCh19
                               .. "\n" .. UhfCh20
-                            )     
+                            )
 end
 
 
@@ -1290,17 +1293,17 @@ function ExportScript.TacanRadio(mainPanelDevice) -- TACAN Channel
 end
 
 function ExportScript.FuelQuantityIndicator(mainPanelDevice) -- Fuel Quantity Indicator (Dual)
-	
+
 	local lLeftFuel = ExportScript.Tools.round(mainPanelDevice:get_argument_value(22) * 2500, 0)
 	local lRightFuel = ExportScript.Tools.round(mainPanelDevice:get_argument_value(23) * 2500, 0)
-	
+
 	ExportScript.Tools.SendData(2006, lLeftFuel)
 	ExportScript.Tools.SendData(2007, lRightFuel)
 	ExportScript.Tools.SendData(2008, lLeftFuel + lRightFuel)
 end
 
-function ExportScript.UhfRadioKnobs(mainPanelDevice) --AN/ARC-164 UHF 
-  
+function ExportScript.UhfRadioKnobs(mainPanelDevice) --AN/ARC-164 UHF
+
 	local lTmp327 = tonumber(string.format("%0.1f", mainPanelDevice:get_argument_value(327)))
 	local lTmp327_2 = lTmp327
         if lTmp327 == 0.0 then lTmp327_2 = 0.0
@@ -1308,11 +1311,11 @@ function ExportScript.UhfRadioKnobs(mainPanelDevice) --AN/ARC-164 UHF
 	elseif lTmp327 == 0.2 then lTmp327_2 = 0.2
 	elseif lTmp327 == 0.3 then lTmp327_2 = 0.1
 	else                       lTmp327_2 = lTmp327 end
-	
+
 	local lTmp328_2 = 1 - mainPanelDevice:get_argument_value(328)
 	local lTmp329_2 = 1 - mainPanelDevice:get_argument_value(329)
 	local lTmp330_2 = 1 - mainPanelDevice:get_argument_value(330)
-	
+
 	local lTmp331 = mainPanelDevice:get_argument_value(331)
 	local lTmp331_2 = 0
         if lTmp331 == 0.0  then lTmp331_2 = 0.0
@@ -1320,7 +1323,7 @@ function ExportScript.UhfRadioKnobs(mainPanelDevice) --AN/ARC-164 UHF
 	elseif lTmp331 == 0.5  then lTmp331_2 = 0.5
 	elseif lTmp331 == 0.75 then lTmp331_2 = 0.25
 	else                       lTmp331_2 = lTmp331 end
-	
+
 	ExportScript.Tools.SendData(327, lTmp327_2)
 	ExportScript.Tools.SendData(328, lTmp328_2)
 	ExportScript.Tools.SendData(329, lTmp329_2)
@@ -1348,6 +1351,67 @@ function ExportScript.FlowBlinker(mainPanelDevice)
 	ExportScript.Tools.SendData(9000, blink)
 
 end
+
+function ExportScript.RWRControlPanel(mainPanelDevice)
+  -- 4003 & 4008 are reserved for logical alignment. LAUNCH & ACT/PWR lights INOP.
+  ExportScript.Tools.SendData(4000, getRWRButtonLights(mainPanelDevice, 552, 553))
+  ExportScript.Tools.SendData(4001, getRWRButtonLights(mainPanelDevice, 555))
+  ExportScript.Tools.SendData(4002, getRWRButtonLights(mainPanelDevice, 557, 558))
+  ExportScript.Tools.SendData(4004, getRWRButtonLights(mainPanelDevice, 562, 563))
+
+  ExportScript.Tools.SendData(4005, getRWRButtonLights(mainPanelDevice, 565, 566))
+  ExportScript.Tools.SendData(4006, getRWRButtonLights(mainPanelDevice, 568, 569))
+  ExportScript.Tools.SendData(4007, getRWRButtonLights(mainPanelDevice, 571, 572))
+  local pwr_on = mainPanelDevice:get_argument_value(576) > 0.0
+  ExportScript.Tools.SendData(4009, pwr_on and "SYSTEM\n\n\nPOWER" or "")
+end
+
+function getRWRButtonLights(mainPanelDevice, first_id, second_id)
+  -- Associate argument IDs with their text representation, which
+  -- will be returned as a string for StreamDeck
+  local labels_map = {
+    [552] = "PRIORITY",
+    [553] = "OPEN",
+    [555] = "█   S   █",
+    [557] = "█   ◆︎   █",
+    [558] = "█   H   █",
+    [562] = "LOW",
+    [563] = "ALT",
+    [565] = "TGT SEP",
+    [566] = "TGT SEP",
+    [568] = "ON",
+    [569] = "SYS TEST",
+    [571] = "█   U   █",
+    [572] = "UNKNOWN",
+  }
+  local first_on = mainPanelDevice:get_argument_value(first_id) > 0.0
+  local second_on = mainPanelDevice:get_argument_value(second_id) > 0.0
+  local first_label = first_on and labels_map[first_id] or " "
+  local second_label = second_on and labels_map[second_id] or " "
+
+  return first_label.."\n\n\n"..second_label
+end
+
+function ExportScript.flapPositionIndicator(mainPanelDevice)
+  local flapIndicatorPositions = {
+    [0.1] = "UP",
+    [0.2] = "AUTO",
+    [0.3] = "FXD",
+    [0.4] = "FULL"
+  }
+  local currentPos = mainPanelDevice:get_argument_value(51)
+  currentPos = math.floor(currentPos * 10) / 10 -- Cut off excess decimal digits
+  local indicatorText = flapIndicatorPositions[currentPos] or ""
+  ExportScript.Tools.SendData(4010, indicatorText)
+  ExportScript.Tools.SendData(4011, string.len(indicatorText)) -- If != 0, flaps in transition
+end
+
+function ExportScript.pitchTrimPosition(mainPanelDevice)
+  local trimValue = mainPanelDevice:get_argument_value(52)
+  trimValue = math.floor(trimValue * 100) / 10
+  ExportScript.Tools.SendData(4012, string.format("%+.1f", trimValue))
+end
+
 ----------------------
 -- Helper Functions --
 ----------------------
@@ -1357,7 +1421,7 @@ function formatTime(time)
     local minutes = math.floor(time / 60) % 60
     local hours = math.floor(time / (60 * 60)) % 24
     return string.format("%02d", hours) .. "-" .. string.format("%02d", minutes) .. "-" .. string.format("%02d", seconds)
-end    
+end
 
 function meters2feet(meters)
   local feet = meters * 3.281
@@ -1398,7 +1462,7 @@ function format_int(number) --https://stackoverflow.com/questions/10989788/forma
   local i, j, minus, int, fraction = tostring(number):find('([-]?)(%d+)([.]?%d*)')
   -- reverse the int-string and append a comma to all blocks of 3 digits
   int = int:reverse():gsub("(%d%d%d)", "%1,")
-  -- reverse the int-string back remove an optional comma and put the 
+  -- reverse the int-string back remove an optional comma and put the
   -- optional minus and fractional part back
   return minus .. int:reverse():gsub("^,", "") .. fraction
 end
@@ -1442,19 +1506,19 @@ function getdistance(lat1,lat2,lon1,lon2,unit) -- https://www.geeksforgeeks.org/
   --lat2 = 42.3269 -- HONI
   --lon1 = 41.6777
   --lon2 = 42.4122
-		
+
   local lon1 = toRadians(lon1)
   local lon2 = toRadians(lon2)
   local lat1 = toRadians(lat1)
   local lat2 = toRadians(lat2)
-  
+
   -- Haversine formula
   local dlon = lon2 - lon1
   local dlat = lat2 - lat1
   local a = math.pow(math.sin(dlat / 2), 2) +
       math.cos(lat1) * math.cos(lat2) *
       math.pow(math.sin(dlon / 2),2)
-    
+
   local c = 2 * math.asin(math.sqrt(a))
 
   local r -- Radius of earth in X.
@@ -1467,7 +1531,7 @@ function getdistance(lat1,lat2,lon1,lon2,unit) -- https://www.geeksforgeeks.org/
     elseif unit == 'meters' then
     r = 6371 * 1000
     end
-  
+
   -- calculate the result
   return (c * r)
 end
@@ -1480,26 +1544,26 @@ end
 function getBearing(lat1,lat2,lon1,lon2, magnetic)
   local bearing_rad = math.atan2(lon2 - lon1, lat2 - lat1)
   if bearing_rad < 0 then
-    bearing_rad = bearing_rad + (2 * math.pi) 
+    bearing_rad = bearing_rad + (2 * math.pi)
   end
-    
+
   bearing = math.deg(bearing_rad)
-  
+
   -- start calculation for getting the magnetic bar
   local _aircraftPitch, _aircraftBank, aircraftYawTrue = LoGetADIPitchBankYaw()
   aircraftYawTrue = aircraftYawTrue * 57.3 -- actually heading
   local aircraftYawMagnetic = LoGetMagneticYaw()  * 57.3
   local magneticVariance = aircraftYawTrue - aircraftYawMagnetic
-  
+
   if magnetic == true then
     bearing = bearing - magneticVariance
   end
-  
+
   -- correction for bearings less than 0 due to the calculation above
   if bearing < 0 then
     bearing = bearing + 360
   end
-  
+
   return bearing
 end
 

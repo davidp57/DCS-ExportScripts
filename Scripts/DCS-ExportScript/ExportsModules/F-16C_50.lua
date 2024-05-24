@@ -699,18 +699,18 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)
 	
 	ExportScript.EcmPanel(mainPanelDevice)
 	ExportScript.FuelInfo(mainPanelDevice)	
-  ExportScript.UhfRadioPresets(mainPanelDevice)	
+	ExportScript.UhfRadioPresets(mainPanelDevice)	
   
-  if LoIsObjectExportAllowed() then -- returns true if world objects data is available
-    if LoIsOwnshipExportAllowed() then -- returns true if ownship data is available
-  ExportScript.LoAircraftInfo(mainPanelDevice) -- Provides a lot of aircraft properties
-  ExportScript.AirportInfo(mainPanelDevice) -- Provides info on the two closest airports
-  ExportScript.WindsAloft(mainPanelDevice) -- Gets winds at the aircraft
-  ExportScript.GroundRadar(mainPanelDevice) -- Reports 2 closest friendlies and 2 enemies (Use in Single Player)
-  ExportScript.AirRadar(mainPanelDevice) -- Reports 2 closest friendlies and 2 enemies (Use in Single Player)
-  ExportScript.IglaHunter(mainPanelDevice) -- Locates closest Igla (Use in Single Player)
-    end
-  end
+  --if LoIsObjectExportAllowed() then -- returns true if world objects data is available
+    --if LoIsOwnshipExportAllowed() then -- returns true if ownship data is available
+  --ExportScript.LoAircraftInfo(mainPanelDevice) -- Provides a lot of aircraft properties
+  --ExportScript.AirportInfo(mainPanelDevice) -- Provides info on the two closest airports
+  --ExportScript.WindsAloft(mainPanelDevice) -- Gets winds at the aircraft
+  --ExportScript.GroundRadar(mainPanelDevice) -- Reports 2 closest friendlies and 2 enemies (Use in Single Player)
+  --ExportScript.AirRadar(mainPanelDevice) -- Reports 2 closest friendlies and 2 enemies (Use in Single Player)
+  --ExportScript.IglaHunter(mainPanelDevice) -- Locates closest Igla (Use in Single Player)
+    --end
+  --end
   
   -- TODO FIX: If cold start online then this blocks exports after it. Keep this last.
   ExportScript.CountermeasureReadouts(mainPanelDevice) 
