@@ -1,6 +1,6 @@
 -- F-15E Export 25 July 2023
 -- IF YOU ARE USING NORSK-L's STREAMDECK PROFILE THEN YOU MUST SET THE FOLLOWING LINE to "TRUE"
-Norsk_UFC = "FALSE" -- "TRUE" or "FALSE"
+Norsk_UFC = true -- "TRUE" or "FALSE"
 
 -- version 0.82
 -- aded SpeedBrake % display to ID 6579 by user request
