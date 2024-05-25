@@ -6,7 +6,7 @@ Read the wiki for export IDs: https://github.com/asherao/DCS-ExportScripts/wiki
 
 This is based off of DCS-ExportScripts (https://github.com/s-d-a/DCS-ExportScripts/wiki). The main purpose is to make customized exports for DCS-Interface (https://github.com/charlestytler/streamdeck-dcs-interface) for use with an Elgato Stream Deck. 
 
-Following module export luas have been modified. Applicable DCS-ExportScripts ID is in parentheses:
+Following module export luas have been modified. Applicable DCS-ExportScripts ID is in parentheses. Due to the scope of the project, this is not the full list:
 - UH-60L Mod
   - Added a lot of stuff. See Wiki for details: https://github.com/asherao/DCS-ExportScripts/wiki/MH-60L
   - Added Streamdeck Profile: https://github.com/asherao/DCS-ExportScripts/blob/master/docu/StreamDeck%20Examples/MH-60L%20Mod%20by%20Bailey%20Release.streamDeckProfile
@@ -43,7 +43,7 @@ Following module export luas have been modified. Applicable DCS-ExportScripts ID
 
 More info about SENPAI (https://forums.eagle.ru/topic/273399-stream-deck-altimeter-setting-in-inhg-and-hpa/?tab=comments#comment-4724094)
 
-Compatible with DCS World 2.7.6.13133
+Compatible with DCS World 2.9.5.55300
 
 # Wiki
 ---

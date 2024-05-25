@@ -1,7 +1,26 @@
--- F-15E Export 30 June 2023
--- IF YOU ARE USING NORSK-L's STREAMDECK PROFILE THEN YOU MUST SET THE FOLLOWING LINE to true
-Norsk_UFC = true -- true or false
+-- F-15E Export 25 July 2023
+-- IF YOU ARE USING NORSK-L's STREAMDECK PROFILE THEN YOU MUST SET THE FOLLOWING LINE to "TRUE"
+Norsk_UFC = "FALSE" -- "TRUE" or "FALSE"
 
+-- version 0.82
+-- aded SpeedBrake % display to ID 6579 by user request
+
+-- version 0.81
+-- removed duplicate guage (383) found by a user.
+
+-- version 0.8
+-- Altered TOLTAL LBS label to TOTAL on 7368 (user request)
+-- Add Oxygen PSI output, with label to 6554 (user request)
+-- Added Basic Aircraft Data Function and added Current Magnetic Heading Readout to 6015 (user request)
+-- Investigated HUD Data VVI (6009) as reported not working by user - no issue found?
+-- Updated UFC data exports because of changes in patch 2.8.7.42583
+
+-- To Do List:
+
+-- Fix any issues with HUD data (yes I'm pretty sure there will be some) and expand it if possible
+-- Check all argument values and convert to 1d or .1f where possible, only leaving .2f and .3f if actually needed
+-- Create option to turn field labels on/off maybe?
+--------------------------------------------------------------------------------------------------------------
 -- version 0.7a
 -- quick fix for the UFC crashes on GC align or when selecting the PP-EGI option - the F15 sends a really dodgy character that is being sent by the sim which is ok unless its in a modified string with escape characters...
 -- then the export script dies a death and kills the streamdeck integration code as well
@@ -25,14 +44,8 @@ Norsk_UFC = true -- true or false
 	-- LORIGHT	- Nearly the same as NAV but without the very bottom row of digits...what are they anyway?
 -- Included a radio export as it's not easy to see the frequency when using presets. This draws data from the core sim to supplement the UFC info, separate items or a combined view available 6501 & 6504
 
--- To Do List:
--- Fix any issues with HUD data (yes I'm pretty sure there will be some) and expand it if possible
--- Check all argument values and convert to 1d or .1f where possible, only leaving .2f and .3f if actually needed
--- Create option to turn field labels on/off maybe?
-
---------------------------------------------------------------------------------------------------------------
--- version 0.6a typo corrected!
--- version 0.6
+-- version 0.6a typo corrected! 
+-- version 0.6 
 -- Fixed Left/Right Fuel Counters reading an extra 1000 lbs when < 100 lbs from next thousand - needed new function RoundDP()
 -- Setup Export IDs for each data elements of the Fuel Display - THIS MEANS THE COMBINED DISPLAY HAS CHANGED DCSID from 8383 to 83830
 -- Setup Export IDs for each of the data elements of the Engine Management Display
@@ -183,7 +196,6 @@ ExportScript.ConfigEveryFrameArguments = 	-- arguments for export every frame (u
 			[339]	= "%.2f",	-- PILOT FLAP Light (green)
 			[338]	= "%.2f",	-- PILOT FLAP Light (yellow)
 		--  Fuel Gauges
-			[383]	= "%.2f",	-- PILOT Fuel Arrow
 			[383]	= "%.2f",	-- PILOT Fuel Needle
 			[382]	= "%.2f",	-- PILOT Fuel OFF Flag
 			[370]	= "%.2f",	-- PILOT Fuel Totalizer Counter 100
@@ -333,7 +345,7 @@ ExportScript.ConfigEveryFrameArguments = 	-- arguments for export every frame (u
 	-------------------------------------------------------------------
 		--  Canopy Gauges
 			[38]	= "%.2f",	-- Canopy Position
-	}
+	}	
 ExportScript.ConfigArguments =	-- arguments for export in low tick interval based on "clickabledata.lua"
 	{
 	-------------------------------------------------------------------
@@ -859,7 +871,7 @@ ExportScript.ConfigArguments =	-- arguments for export in low tick interval base
 -- HIGH IMPORTANCE EXPORTS --
 -----------------------------
 function ExportScript.ProcessIkarusDCSConfigHighImportance(mainPanelDevice)	-- Pointed to by ProcessIkarusDCSHighImportance
-end
+	end
 ----------------------------
 -- LOW IMPORTANCE EXPORTS --
 ----------------------------
@@ -868,19 +880,20 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)	-- Po
 	--------------------------------------------------------------------------------------------------------------
 	-- TEST DISPLAY
 		ExportScript.Tools.SendData(757575,"⚪⚫\n🟡🔴\n🟢❌")
+
 	-- ADVANCED UFC IMPLEMENTATION v1
-		if Norsk_UFC then
-			PILOT_UFCa(ExportScript.Tools.getListIndicatorValue(9))
+		if Norsk_UFC == "TRUE" then
+			PILOT_UFCa(ExportScript.Tools.getListIndicatorValue(9))	-- Updated 25/7/2023
 		else
-			PILOT_UFC(ExportScript.Tools.getListIndicatorValue(9))
+			PILOT_UFC(ExportScript.Tools.getListIndicatorValue(9))	-- Updated 25/7/2023
 		end
-		WSO_UFC(ExportScript.Tools.getListIndicatorValue(18))
+		WSO_UFC(ExportScript.Tools.getListIndicatorValue(18))	-- Updated 25/7/2023
 	-- COMBINED FUEL DISPLAY
 		ExportScript.Tools.SendData(83830,FUEL_display(mainPanelDevice,0))	-- NOTE EXPORT ID HAS CHANGED
 	-- INDIVIDUAL FUEL DATA
 		-- With Lables
 		ExportScript.Tools.SendData(7383,FUEL_display(mainPanelDevice,"INTL").."\nINTL")
-		ExportScript.Tools.SendData(7368,FUEL_display(mainPanelDevice,"TOTAL").."\nTOTAL LBS")
+		ExportScript.Tools.SendData(7368,FUEL_display(mainPanelDevice,"TOTAL").."\nTOTAL")
 		ExportScript.Tools.SendData(7373,FUEL_display(mainPanelDevice,"LEFT").."\nLEFT")
 		ExportScript.Tools.SendData(7377,FUEL_display(mainPanelDevice,"RIGHT").."\nRIGHT")
 		ExportScript.Tools.SendData(7384,FUEL_display(mainPanelDevice,"BINGO").."\nBINGO")
@@ -934,10 +947,11 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)	-- Po
 		ExportScript.Tools.SendData(6009,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"VVI"))
 
 		ExportScript.Tools.SendData(6010,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"NAV"))	-- Combined Nav Block
-		ExportScript.Tools.SendData(6011,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"UPLEFT"))
+		ExportScript.Tools.SendData(6011,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"UPLEFT"))	
 		ExportScript.Tools.SendData(6012,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"LOLEFT"))
 		ExportScript.Tools.SendData(6013,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"UPRIGHT"))
 		ExportScript.Tools.SendData(6014,HUD_display(ExportScript.Tools.getListIndicatorValue(1),"LORIGHT"))
+		ExportScript.Tools.SendData(6015,Aircraft_Data("HDG_MAG"))	-- Added here but not related to HUD
 	-- BASIC RADIO Data - This basically shows the actual frequency of transmit as not easy to see on UFC when in preset mode
 		ExportScript.Tools.SendData(6501,RADIO_display("BOTH",1))
 		ExportScript.Tools.SendData(6502,RADIO_display("CHAN",1))
@@ -945,18 +959,19 @@ function ExportScript.ProcessIkarusDCSConfigLowImportance(mainPanelDevice)	-- Po
 		ExportScript.Tools.SendData(6504,RADIO_display("BOTH",2))
 		ExportScript.Tools.SendData(6505,RADIO_display("CHAN",2))
 		ExportScript.Tools.SendData(6506,RADIO_display("FREQ",2))
+	-- Oxygen PSI gauge export (6554)
+		ExportScript.Tools.SendData(6554,string.format("%1.0f", mainPanelDevice:get_argument_value(554) * 400) .. "\nPSI")
+	-- SpeedBrake
+		ExportScript.Tools.SendData(6579,Mech_Data("SPDBRK_Value"))
 
-
-
-end
+	end	
 --------------------------------------------------------------------------------------------------------------
 -----------------------
 -- GENERAL FUNCTIONS --
 -----------------------
 function ExportScript.CockpitParamsLogDump(mainPanelDevice) -- Get list of cockpit params
    ExportScript.Tools.WriteToLog('list_cockpit_params(): '..ExportScript.Tools.dump(list_cockpit_params()))
-end
-
+	end
 function ExportScript.MetaTableLogDump(mainPanelDevice) -- getmetatable get function name from devices
     local ltmp1 = 0
     for ltmp2 = 1, 70, 1 do
@@ -964,17 +979,15 @@ function ExportScript.MetaTableLogDump(mainPanelDevice) -- getmetatable get func
         ExportScript.Tools.WriteToLog(ltmp2..': '..ExportScript.Tools.dump(ltmp1))
         ExportScript.Tools.WriteToLog(ltmp2..' (metatable): '..ExportScript.Tools.dump(getmetatable(ltmp1)))
     end
-end
-
+	end
 function ExportScript.ListIndicationLogDump(mainPanelDevice) -- list_indication get the value of cockpit displays
     local ltmp1 = 0
     for ltmp2 = 0, 20, 1 do
         ltmp1 = list_indication(ltmp2)
         ExportScript.Tools.WriteToLog(ltmp2..': '..ExportScript.Tools.dump(ltmp1))
     end
-end
-
-function Linearize(current_value, raw_tab, final_tab)	-- Converts Guage value to readable format
+	end
+function Linearize(current_value, raw_tab, final_tab)	-- Converts Guage value to readable format 
 	if current_value <= 0 then
 		return 0
 	end
@@ -987,38 +1000,32 @@ function Linearize(current_value, raw_tab, final_tab)	-- Converts Guage value to
 	end
 	-- we shouldn't be here, so something went wrong - return arbitrary max. final value, maybe the user will notice the problem:
 	return final_tab[#final_tab]
-end
-
+	end
 function RoundTo(num, numDecimalPlaces)	--http://lua-users.org/wiki/SimpleRound
   local mult = 10^(numDecimalPlaces or 0)
   return math.floor(num * mult + 0.5) / mult
-end
-
+	end
 function Round(num)	-- Rounds UP/Down to Nearest Whole Number
 	return num % 1 >= 0.5 and math.ceil(num) or math.floor(num)
-end
-
+	end
 function RoundDP(num)	-- Rounds UP/Down to Nearest Whole Number
 	value = Round(num*10)
 	return value/10
-end
-
+	end
 function ZeroNine(num)	-- Used with Round to roll a round up from 10 to 0.
 	if num >= 9.9 then
 		return 0
 	else
 		return num
 	end
-end
-
+	end
 function OneToZero(num)	-- Used to roll a round up from 1.0 to 0.0
 	if num >= 1.0 then
 		return 0.0
 	else
 		return num
 	end
-end
-
+	end
 function nilToEmpty(value)	-- Converts a nil string to an empty string ""
 	if value == nil then
 		value = ''
@@ -1026,10 +1033,32 @@ function nilToEmpty(value)	-- Converts a nil string to an empty string ""
 	else
 		return value
 	end
-end
+	end
 ----------------------
 -- CUSTOM FUNCTIONS --
 ----------------------
+function Aircraft_Data(Option)	-- The standard LoMAC Aircraft data extracted and formatted
+	Pilot = LoGetPilotName()
+	--IAS = string.format("%1d",LoGetIndicatedAirSpeed()).."kts"
+	--TAS = string.format("%1d",LoGetTrueAirSpeed()).."kts"
+	--AS = "I "..string.format("%1d",LoGetIndicatedAirSpeed()).."kts\nT "..string.format("%1d",LoGetTrueAirSpeed()).."kts"
+	--Alt_ASL = string.format("%1d",LoGetAltitudeAboveSeaLevel()*3.28084)
+	--Alt_AGL = string.format("%1d",LoGetAltitudeAboveGroundLevel())
+	--AoA = (LoGetAngleOfAttack()*57.2957795).." α"
+	--Mach = "M "..(string.format("%.2f",RoundTo(LoGetMachNumber(),2)))
+	HDG_MAG = string.format("%1d",LoGetMagneticYaw()*57.2957795).."°"
+	--HDG_TRU = string.format("%1d",((LoGetSelfData().Heading)*57.2957795)).."°"
+	--HDG = "HDG\n"..HDG_MAG.." M\n"..HDG_TRU.." SE"
+	--VVel = string.format("%1d",(LoGetVerticalVelocity()*3.28084)*60)
+	return _G[Option]
+	end
+function Mech_Data(Option)	-- The standard LoMAC Mech data extracted and formatted
+	mechanisationStatus = LoGetMechInfo()
+	--SPDBRK_Status = mechanisationStatus.speedbrakes.status
+    SPDBRK_Value = string.format("%1d",(mechanisationStatus.speedbrakes.value * 100)).."%"
+	return _G[Option]
+	end
+
 function FORMAT_UFC(Input)	-- Re-Formats Data For Clear UFC Display v1
 	Input = Input:gsub(":",".")
 	if string.sub(Input,1,1) == " " then Input = Input:sub(2) end	-- remove leading space
@@ -1060,8 +1089,7 @@ function FORMAT_UFC(Input)	-- Re-Formats Data For Clear UFC Display v1
 	else
 		return Input	-- or just retun the <5 char string
 	end
-end
-
+	end
 function FORMAT_UFCRAD(Input)	-- Re-Formats Data For Clear UFC RADIO Display v1
 	-- OFF
 	if string.sub(Input,(string.len(Input)-2),(string.len(Input))) == "OFF" then return string.sub(Input,2,string.len(Input)):gsub(" ","\n")
@@ -1071,8 +1099,7 @@ function FORMAT_UFCRAD(Input)	-- Re-Formats Data For Clear UFC RADIO Display v1
 	elseif string.sub(Input,(string.len(Input)),(string.len(Input))) == " " then Input = " "..string.sub(Input,1,(string.len(Input)-1))end
 	-- Spit Freq from Channel and return strings
 	if string.len(Input) < 5 then return Input else return string.sub(Input,1,(string.len(Input)-3)).."\n."..string.sub(Input,(string.len(Input)-2),(string.len(Input))) end
-end
-
+	end
 function FORMAT_SCRATCH(Input)
 	Input = Input:gsub(":",".")
 	Len = string.len(Input)
@@ -1085,8 +1112,7 @@ function FORMAT_SCRATCH(Input)
 	else
 		return string.sub(Input,1,4).."\n"..string.sub(Input,5,8).."\n"..string.sub(Input, 9,Len)
 	end
-end
-
+	end
 function PILOT_UFC(UFC_PILOT)	-- PILOT UFC export for Norsk-L
 	if UFC_PILOT == nil then
 		ExportScript.Tools.SendData(82001,"NO\nDATA")
@@ -1101,22 +1127,21 @@ function PILOT_UFC(UFC_PILOT)	-- PILOT UFC export for Norsk-L
 		ExportScript.Tools.SendData(82006,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_06)))	-- Radio Channel
 
 	-- CENTRE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82011,nilToEmpty(UFC_PILOT.UFC_CC_01):gsub(":","."))
-		ExportScript.Tools.SendData(82012,nilToEmpty(UFC_PILOT.UFC_CC_02):gsub(":","."))
-		ExportScript.Tools.SendData(82013,nilToEmpty(UFC_PILOT.UFC_CC_03):gsub(":","."))
+		ExportScript.Tools.SendData(82011,nilToEmpty(UFC_PILOT.UFC_CC_01:gsub(":",".")))	
+		ExportScript.Tools.SendData(82012,nilToEmpty(UFC_PILOT.UFC_CC_02:gsub(":",".")))	
+		ExportScript.Tools.SendData(82013,nilToEmpty(UFC_PILOT.UFC_CC_03:gsub(":",".")))	
 		ExportScript.Tools.SendData(82014,FORMAT_SCRATCH(nilToEmpty(UFC_PILOT.UFC_CC_04)))	-- SCRATCHPAD
-
+		
 	-- RIGHT SIDE SIDE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82021,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_12)))
-		ExportScript.Tools.SendData(82022,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_11)))
-		ExportScript.Tools.SendData(82023,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_10)))
+		ExportScript.Tools.SendData(82021,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_12)))	
+		ExportScript.Tools.SendData(82022,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_11)))	
+		ExportScript.Tools.SendData(82023,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_10)))	
 		ExportScript.Tools.SendData(82024,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_09)))
 		-- RADIO
 		ExportScript.Tools.SendData(82025,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_08)))	-- Radio Freq
 		ExportScript.Tools.SendData(82026,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_07)))	-- Radio Channel
 	end
-end
-
+	end
 function PILOT_UFCa(UFC_PILOT)	-- PILOT UFC export for Norsk-L
 	if UFC_PILOT == nil then
 		ExportScript.Tools.SendData(82001,"NO\nDATA")
@@ -1131,22 +1156,21 @@ function PILOT_UFCa(UFC_PILOT)	-- PILOT UFC export for Norsk-L
 		ExportScript.Tools.SendData(82006,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_06)))	-- Radio Channel
 
 	-- RIGHT SIDE SIDE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82012,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_12)))
-		ExportScript.Tools.SendData(82011,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_11)))
-		ExportScript.Tools.SendData(82010,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_10)))
+		ExportScript.Tools.SendData(82012,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_12)))	
+		ExportScript.Tools.SendData(82011,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_11)))	
+		ExportScript.Tools.SendData(82010,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_10)))	
 		ExportScript.Tools.SendData(82009,FORMAT_UFC(nilToEmpty(UFC_PILOT.UFC_SC_09)))
 		-- RADIO
 		ExportScript.Tools.SendData(82008,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_08)))	-- Radio Freq
 		ExportScript.Tools.SendData(82007,FORMAT_UFCRAD(nilToEmpty(UFC_PILOT.UFC_SC_07)))	-- Radio Channel
 
 	--CENTRE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82013,nilToEmpty(UFC_PILOT.UFC_CC_01):gsub(":","."))
-		ExportScript.Tools.SendData(82014,nilToEmpty(UFC_PILOT.UFC_CC_02):gsub(":","."))
-		ExportScript.Tools.SendData(82015,nilToEmpty(UFC_PILOT.UFC_CC_03):gsub(":","."))
+		ExportScript.Tools.SendData(82013,nilToEmpty(UFC_PILOT.UFC_CC_01:gsub(":",".")))	
+		ExportScript.Tools.SendData(82014,nilToEmpty(UFC_PILOT.UFC_CC_02:gsub(":",".")))	
+		ExportScript.Tools.SendData(82015,nilToEmpty(UFC_PILOT.UFC_CC_03:gsub(":",".")))	
 		ExportScript.Tools.SendData(82016,FORMAT_SCRATCH(nilToEmpty(UFC_PILOT.UFC_CC_04)))	-- SCRATCHPAD
 	end
-end
-
+	end
 function WSO_UFC(UFC_WSO)	-- WSO UFC export for Norsk-L
 	if UFC_WSO == nil then
 		ExportScript.Tools.SendData(82000,"NO\nDATA\nWSO")
@@ -1158,28 +1182,27 @@ function WSO_UFC(UFC_WSO)	-- WSO UFC export for Norsk-L
 		ExportScript.Tools.SendData(82034,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_04)))
 		-- RADIO
 		ExportScript.Tools.SendData(82035,FORMAT_UFCRAD(nilToEmpty(UFC_WSO.UFC_SC_05)))	-- Radio Freq
-		ExportScript.Tools.SendData(82036,FORMAT_UFCRAD(nilToEmpty(UFC_WSO.UFC_SC_06)))	-- Radio Channel
+		ExportScript.Tools.SendData(82036,FORMAT_UFCRAD(nilToEmpty(UFC_WSO.UFC_SC_06)))	-- Radio Channel	
 	--CENTRE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82041,nilToEmpty(UFC_WSO.UFC_CC_01):gsub(":","."))
-		ExportScript.Tools.SendData(82042,nilToEmpty(UFC_WSO.UFC_CC_02):gsub(":","."))
-		ExportScript.Tools.SendData(82043,nilToEmpty(UFC_WSO.UFC_CC_03):gsub(":","."))
+		ExportScript.Tools.SendData(82041,nilToEmpty(UFC_WSO.UFC_CC_01:gsub(":",".")))	
+		ExportScript.Tools.SendData(82042,nilToEmpty(UFC_WSO.UFC_CC_02:gsub(":",".")))	
+		ExportScript.Tools.SendData(82043,nilToEmpty(UFC_WSO.UFC_CC_03:gsub(":",".")))	
 		ExportScript.Tools.SendData(82044,FORMAT_SCRATCH(nilToEmpty(UFC_WSO.UFC_CC_04)))	-- SCRATCHPAD
 	-- RIGHT SIDE SIDE DESCENDING FROM THE TOP
-		ExportScript.Tools.SendData(82051,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_12)))
-		ExportScript.Tools.SendData(82052,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_11)))
-		ExportScript.Tools.SendData(82053,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_10)))
+		ExportScript.Tools.SendData(82051,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_12)))	
+		ExportScript.Tools.SendData(82052,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_11)))	
+		ExportScript.Tools.SendData(82053,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_10)))	
 		ExportScript.Tools.SendData(82054,FORMAT_UFC(nilToEmpty(UFC_WSO.UFC_SC_09)))
 		-- RADIO
 		ExportScript.Tools.SendData(82055,FORMAT_UFCRAD(nilToEmpty(UFC_WSO.UFC_SC_08)))	-- Radio Freq
 		ExportScript.Tools.SendData(82056,FORMAT_UFCRAD(nilToEmpty(UFC_WSO.UFC_SC_07)))	-- Radio Channel
 	end
-end
-
+	end
 function FUEL_display(Data,Option) -- Combines/Converts FUEL guage to single string or pulls the seperate values
 	-- Option 0 gives all data, use the seperale element names to pull single values (OFF,Dial,TOTAL,Left,RIGHT)
 	-- Example ExportScript.Tools.SendData(88383,ExportScript.FUEL(mainPanelDevice,"TOTAL")) sends back just the TOTALizer
 	-- Convert the raw data and set as variables
-		OFF = string.format("%1d",Data:get_argument_value(382))
+		OFF = string.format("%1d",Data:get_argument_value(382))	
 		INTL	=	string.format("%1d",Data:get_argument_value(383)*20000)
 		BINGO	=	string.format("%1d",(Data:get_argument_value(384)/0.0714285)*1000)
 		TOTAL	=	(string.format("%.1f",OneToZero(RoundDP(Data:get_argument_value(368))))*100000)+
@@ -1206,7 +1229,7 @@ function FUEL_display(Data,Option) -- Combines/Converts FUEL guage to single str
 			until string.len(RIGHT) == 4
 		end
 	-- Publish the Data
-		if Option == 0 then	-- Send all Data to single string
+		if Option == 0 then	-- Send all Data to single string	
 			if OFF == "0" then return "OFF"
 			else
 				return	INTL.."\n"..
@@ -1220,8 +1243,7 @@ function FUEL_display(Data,Option) -- Combines/Converts FUEL guage to single str
 		else	-- Just return the requested field
 			return	_G[Option]
 		end
-end
-
+	end
 function EMD_display(Data,Option) -- Combines/Converts EMD to single string or pulls the seperate values
 	-- Option 0 gives all data, use the seperale element names to pull single values (RPM_L,RPM_R,TMP_L,TMP_R,FF_L,FF_R,NOZ_L,NOZ_R,OIL_L,OIL_R)
 	-- Example ExportScript.Tools.SendData(81101,ExportScript.EMD(mainPanelDevice,"RPM_L")) sends back just the Left RPM value
@@ -1266,10 +1288,9 @@ function EMD_display(Data,Option) -- Combines/Converts EMD to single string or p
 	else
 		return	_G[Option]
 	end
-end
-
+	end
 function HUD_display(Data,Option) -- Extracts dat aelemnts from the HUD to provide as single exports or combined exports
-	-- Check for data flowing into function
+	-- Check for data flowing into function	
 	if Data == nil then return "NO\nDATA"
 	else
 	-- Set No Data State for Variables
@@ -1332,8 +1353,7 @@ function HUD_display(Data,Option) -- Extracts dat aelemnts from the HUD to provi
 		return	_G[Option]
 	end
 	end
-end
-
+	end
 function RADIO_display(Option,Radio)
 	--	Set Raw Data Into variables
 	r1_chan = nilToEmpty(ExportScript.Tools.getListIndicatorValue(8).UFC_SC_06)
@@ -1348,7 +1368,7 @@ function RADIO_display(Option,Radio)
 	BOTH = ""
 	-- Return correct data based on Channel or Manual selected in UFC
 	if Radio == 1 then
-		if string.sub(r1_chan,1,1) == "*" then
+		if string.sub(r1_chan,1,1) == "*" then 
 			CHAN = r1_chan:gsub("*","")
 			FREQ = string.sub(r1_freq,1,3).."\n."..string.sub(r1_freq,4,6)
 			BOTH = CHAN.."\n"..FREQ
@@ -1358,7 +1378,7 @@ function RADIO_display(Option,Radio)
 			BOTH = CHAN.."\n"..FREQ
 		end
 	elseif Radio == 2 then
-		if string.sub(r2_chan,string.len(r2_chan),string.len(r2_chan)) == "*" then
+		if string.sub(r2_chan,string.len(r2_chan),string.len(r2_chan)) == "*" then 
 			CHAN = r2_chan:gsub("*","")
 			FREQ = string.sub(r2_freq,1,3).."\n."..string.sub(r2_freq,4,6)
 			BOTH = CHAN.."\n"..FREQ
@@ -1373,15 +1393,13 @@ function RADIO_display(Option,Radio)
 		BOTH = CHAN
 	end
 	return	_G[Option]
-end
-
+	end	
 --[[function RadioFreqs(mainPanelDevice) -- TODO: can string this up to display both the channel and freq on the tile
 	local radio1_freq = (GetDevice(7):get_frequency())/1000000 -- returns 243.000427
 	local radio2_freq = (GetDevice(8):get_frequency())/1000000 -- returns 121.500759
 	ExportScript.Tools.SendData(5020, ExportScript.Tools.RoundFreqeuncy(radio1_freq))
 	ExportScript.Tools.SendData(5021, ExportScript.Tools.RoundFreqeuncy(radio2_freq))
-end]]
-
+	end]]
 function GearTile(mainPanelDevice)	-- From Bailey's LUA: A grphical indication of Gear Status
 	-- ⚪ white
 	-- ⚫ black
@@ -1428,8 +1446,7 @@ function GearTile(mainPanelDevice)	-- From Bailey's LUA: A grphical indication o
 	else
 		return 'GEAR\n' .. noseCircle .. '\n' .. leftCircle .. rightCircle .. '\n' .. handleCircle
 	end
-end
-
+	end
 function  FlapTile(mainPanelDevice) -- From Bailey's LUA: A grphical indication of Flaps Status
 	-- init as black because it represents the lights as off
 	local flapOrange = '⚫'
@@ -1448,15 +1465,14 @@ function  FlapTile(mainPanelDevice) -- From Bailey's LUA: A grphical indication 
 	else
 		return 'FLAP\n' .. flapOrange .. '\n' .. flapGreen
 	end
-end
+	end
 ----------------
 -- NOT IN USE --
 ----------------
 function ExportScript.ProcessDACConfigHighImportance(mainPanelDevice)
-end
-
+	end
 function ExportScript.ProcessDACConfigLowImportance(mainPanelDevice)
-end
+	end
 -- ⚪ white
 -- ⚫ black
 -- 🟡 yellow
@@ -1468,3 +1484,5 @@ end
 -- '✅'
 
 -- Created by Trigati...but based on the excellent work of others!
+
+
